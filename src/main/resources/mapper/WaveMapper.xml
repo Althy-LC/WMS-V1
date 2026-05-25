@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.WaveMapper">
+<insert id="add">
+    insert into wms_wave (wave_no,warehouse_id,status) values <foreach collection="list" item="item" separator="," open="(" close=")">
+                                                                #{item.waveNo},
+                                                                #{item.warehouseId},
+                                                                #{item.status}
+                                                              </foreach>
+</insert>
+
+    <select id="getid" resultType="java.lang.Long">
+        select id from wms_wave where wave_no = #{waveNo}
+    </select>
+
+    <select id="getByStatus" resultType="com.example1.wms.POJO.Wave">
+        select id, wave_no, warehouse_id from wms_wave where status = #{status}
+    </select>
+
+    <update id="updateStatus">
+        update wms_wave set status = #{status} where wave_no in <foreach collection="list" item="item" separator="," open="(" close=")">
+                                                                    #{item}
+                                                                </foreach>
+    </update>
+
+    <select id="getWarehouse" resultType="java.lang.Long">
+        select warehouse_id from wms_wave where id = #{waveId}
+    </select>
+
+    <update id="putStatus">
+        update wms_wave set status = #{status} where wave_no = #{waveNo}
+    </update>
+</mapper>

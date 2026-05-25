@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.LocationMapper">
+    <insert id="add">
+        insert into wms_location (location_code,area_id,location_type) values (#{locationCode},#{areaId},#{locationType})
+    </insert>
+
+    <select id="select" resultType="com.example1.wms.DTO.LocationDto">
+        select location_code,area_id,area_code,area_name,location_type,l.status,l.create_time,l.update_time from wms_location l inner join wms_area a on area_id = a.id where location_code = #{locationCode} <if test="!isAdmin"> and l.status != 0</if>
+    </select>
+
+    <select id="list" resultType="com.example1.wms.DTO.LocationDto">
+        select l.id,location_code,area_id,area_code,area_name,location_type,l.status,l.create_time,l.update_time from wms_location l inner join wms_area a on area_id = a.id <if test="!isAdmin">where l.status != 0</if> order by id limit #{start},10
+    </select>
+
+    <select id="listarea" resultType="com.example1.wms.DTO.LocationDto">
+        select l.id,location_code,area_id,area_code,area_name,location_type,l.status,l.create_time,l.update_time from wms_location l inner join wms_area a on area_id = a.id where area_id = #{areaId} <if test="!isAdmin">and l.status != 0</if> order by id asc limit #{start},10
+    </select>
+
+    <select id="listhouse" resultType="com.example1.wms.DTO.LocationDto">
+        select l.id,location_code,a.warehouse_id,l.area_id,area_code,area_name,location_type,l.status,l.create_time,l.update_time from wms_location  l inner join wms_area a on l.area_id=a.id where a.warehouse_id = #{warehouseId} <if test="!isAdmin">and l.status != 0</if> group by area_id order by l.id  limit #{start},10
+    </select>
+
+    <update id="put">
+        update wms_location <set>
+                                <if test="areaId != null">
+                                    area_Id = #{areaId},
+                                </if>
+                                <if test="locationType != null">
+                                    location_type = #{locationType},
+                                </if>
+                                <if test="status != null">
+                                    status = #{status}
+                                </if>
+                            </set>
+                               where location_code = #{locationCode}
+
+    </update>
+
+    <update id="delete">
+        update wms_location set status = 0 where location_code = #{locationCode}
+    </update>
+
+    <select id="getidByCode" resultType="java.lang.Long">
+        select id from wms_location where location_code = #{locationCode}
+    </select>
+
+    <select id="gethouseid" resultType="java.lang.Long">
+        select id from wms_warehouse where warehouse_code = #{warehouseCode}
+    </select>
+
+    <update id="useLocation">
+        update wms_location set status = 2 where status = 1 and id = #{locationId}
+    </update>
+
+
+    <update id="useLocations">
+        update wms_location set status = 2 where id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+         #{item}
+        </foreach>
+            and status != 1
+    </update>
+
+    <update id="releaseLocations">
+            update wms_location set status = 1 where id in
+                                 <foreach collection="list" item="item" open="(" separator="," close=")">
+                                                    #{item}
+                                 </foreach>
+    </update>
+
+    <select id="getCode" resultType="java.lang.String">
+        select location_code from wms_location where id = #{locationId}
+    </select>
+
+    <select id="getCodeAndAreatype" resultType="com.example1.wms.DTO.UtilDto.PathSortDto">
+        select l.id, a.area_type, l.location_code
+        from wms_location l
+        join wms_area a on a.id = l.area_id
+        where l.id in
+        <foreach collection="list" open="(" item="item" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <update id="putStatus">
+        update wms_location set status = #{status} where id in
+                                                   <foreach collection="list" item="item" separator="," open="(" close=")">
+                                                       #{item}
+                                                   </foreach>
+    </update>
+
+    <select id="getAreatype" resultType="java.lang.Integer">
+        select  a.area_type
+        from wms_location l
+        join wms_area a on a.id = l.area_id
+        where l.id = #{locationId}
+    </select>
+</mapper>

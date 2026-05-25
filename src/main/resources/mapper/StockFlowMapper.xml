@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.StockFlowMapper">
+    <insert id="add">
+        insert into wms_stock_flow
+        (sku_id,warehouse_id,change_type,change_quantity,before_total,after_total,before_available,after_available,order_no)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.skuId},
+            #{item.warehouseId},
+            #{item.changeType},
+            #{item.changeQuantity},
+            #{item.beforeTotal},
+            #{item.afterTotal},
+            #{item.beforeAvailable},
+            #{item.afterAvailable},
+            #{item.orderNo}
+             )
+        </foreach>
+    </insert>
+
+
+</mapper>

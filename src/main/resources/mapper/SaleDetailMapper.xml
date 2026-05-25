@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.SaleDetailMapper">
+  <insert id="add">
+      insert into wms_sale_out_detail (order_id,sku_id,quantity) values (#{orderId},#{skuId},#{quantity})
+  </insert>
+
+    <select id="getByorderId" resultType="com.example1.wms.POJO.SaleOutDetail">
+        select sku_id,quantity from wms_sale_out_detail where order_id =#{orderId}
+    </select>
+
+    <select id="getsku" resultType="com.example1.wms.POJO.SaleOutDetail">
+        select sku_id,sum(quantity)  from wms_sale_out_detail where order_id =#{orderId} group by sku_id;
+    </select>
+
+    <select id="getByorderIds" resultType="com.example1.wms.POJO.SaleOutDetail">
+        select
+        order_id,
+        sku_id,
+        sum(quantity) as quantity
+        from wms_sale_out_detail
+        where order_id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        group by sku_id, order_id
+    </select>
+
+    <update id="update">
+        <foreach collection="list" item="item" separator=";">
+        update wms_sale_out_detail  <set>
+                                        <if test="item.locationId != null">
+                                            location_id = #{item.locationId},
+                                        </if>
+                                        <if test="item.pickedQuantity !=null">
+                                            picked_quantity = #{item.pickedQuantity}
+                                        </if>
+                                    </set>
+        where order_id = #{item.orderId} and sku_id =#{item.skuId}
+         </foreach>
+    </update>
+
+</mapper>

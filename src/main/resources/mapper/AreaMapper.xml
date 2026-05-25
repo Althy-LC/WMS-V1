@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.AreaMapper">
+    <insert id="add">
+        insert into wms_area (area_code,area_name,warehouse_id,area_type)values (#{areaCode},#{areaName},#{warehouseId},#{areaType})
+    </insert>
+
+    <select id="list" resultType="com.example1.wms.DTO.AreaDto">
+        select a.id,area_code,area_name,warehouse_id ,warehouse_code,warehouse_name,area_type,a.status,a.create_time,a.update_time from wms_area  a  inner join wms_warehouse w  on a.warehouse_id = w.id <if test="!isAdmin"> where a.status = 1</if> order by id limit #{start},10
+    </select>
+
+    <select id="listhouse" resultType="com.example1.wms.DTO.AreaDto">
+        select a.id,area_code,area_name,warehouse_id,warehouse_code,warehouse_name,area_type,a.status,a.create_time,a.update_time from wms_area a inner join wms_warehouse  w on a.warehouse_id = w.id where warehouse_id = #{warehouseId} <if test="!isAdmin"> and  a.status = 1</if> order by id limit #{start},10
+    </select>
+
+    <select id="select" resultType="com.example1.wms.DTO.AreaDto">
+        select area_code,area_name,warehouse_id,warehouse_code,warehouse_name,area_type,a.status,a.create_time,a.update_time from wms_area a inner join wms_warehouse w on warehouse_id = w.id where area_code =#{areaCode} <if test="!isAdmin"> and  a.status = 1</if>
+    </select>
+
+    <update id="put">
+        update wms_area <set>
+                            <if test="areaName != null">
+                                area_name = #{areaName},
+                            </if>
+                            <if test="warehouseId!= null">
+                                warehouse_id = #{warehouseId},
+                            </if>
+                            <if test="areaType != null">
+                                area_type = #{areaType.code},
+                            </if>
+                            <if test="status != null">
+                                status = #{status}
+                            </if>
+                        </set>
+        where area_code = #{areaCode}
+    </update>
+
+    <update id="delete">
+        update wms_area set status = 0 where area_code = #{areaCode}
+    </update>
+
+    <select id="getid" resultType="java.lang.Long">
+        select id from wms_warehouse where warehouse_code = #{warehouseCode}
+    </select>
+
+    <select id="getreciveByhouse" resultType="java.lang.Long">
+        select l.id
+        from wms_location l, wms_area a
+        where a.id = l.area_id
+        and a.warehouse_id = #{warehouseId}
+        and area_type = 3
+        and l.status = 1
+          <if test="collection != null and !collection.isEmpty()">
+        and id not in
+        <foreach collection="collection" open="(" item="item" close=")" separator=",">
+            #{item}
+        </foreach>
+          </if>
+        order by l.id
+        limit 1
+    </select>
+
+    <select id="getReturnLocationId" resultType="java.lang.Long">
+        select l.id
+        from wms_location l, wms_area a
+        where a.id = l.area_id
+        and a.warehouse_id = #{warehouseId}
+        and area_type = 4
+        and l.status = 1
+        <if test="collection != null and !collection.isEmpty()">
+        and id not in
+        <foreach collection="collection" open="(" item="item" close=")" separator=",">
+            #{item}
+        </foreach>
+        </if>
+        order by l.id
+        limit 1
+    </select>
+
+    <select id="getidByCode" resultType="java.lang.Long">
+        select id from wms_area where area_code = #{areaCode}
+    </select>
+
+    <select id="getReviewLocation" resultType="java.lang.Long">
+        select l.id
+        from wms_location l, wms_area a
+        where a.id = l.area_id
+        and a.warehouse_id = #{warehouseId}
+        and area_type = 6
+        and l.status = 1
+        order by l.id
+        limit 1
+    </select>
+
+    <!-- 获取拣货区库位 (area_type = 5) -->
+    <select id="getPickLocation" resultType="java.lang.Long">
+        select l.id
+        from wms_location l, wms_area a
+        where a.id = l.area_id
+        and a.warehouse_id = #{warehouseId}
+        and area_type = 5
+        and l.status = 1
+        order by l.id
+        limit 1
+    </select>
+</mapper>

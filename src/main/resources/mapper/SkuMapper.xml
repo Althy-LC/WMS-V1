@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.SkuMapper">
+    <insert id="add">
+        insert into wms_sku (sku_code,sku_name,barcode,spec,unit) values (#{skuCode},#{skuName},#{barcode},#{spec},#{unit})
+    </insert>
+
+    <select id="code" resultType="com.example1.wms.POJO.SKU">
+        select sku_code,sku_name,barcode,spec,unit,status,create_time,update_time from wms_sku where sku_code = #{skuCode} <if test="!isAdmin" > and status != 4</if>
+    </select>
+
+    <select id="getid" resultType="java.lang.Long">
+        select id from wms_sku where sku_code = #{skuCode}
+    </select>
+
+    <select id="name" resultType="com.example1.wms.POJO.SKU">
+        select sku_code,sku_name,barcode,spec,unit,status,create_time,update_time from wms_sku where sku_name = #{skuName} <if test="!isAdmin"> and status != 4</if>
+    </select>
+
+    <select id="barcode" resultType="com.example1.wms.POJO.SKU">
+        select sku_code,sku_name,barcode,spec,unit,status,create_time,update_time from wms_sku where barcode = #{barcode} <if test="!isAdmin"> and status != 4</if>
+    </select>
+
+    <update id="delete">
+        update wms_sku set status = 4 where sku_code = #{skuCode}
+    </update>
+
+    <select id="getCodeAndName" resultType="com.example1.wms.POJO.SKU">
+        select sku_code,sku_name from wms_sku where id = #{skuId}
+    </select>
+
+    <update id="put">
+        update wms_sku <set>
+                            <if test="skuName != null">
+                                sku_name = #{skuName},
+                            </if>
+                            <if test="barcode != null">
+                                barcode = #{barcode},
+                            </if>
+                            <if test="spec != null">
+                                spec = #{spec},
+                            </if>
+                            <if test="unit != null">
+                                unit = #{unit},
+                            </if>
+                            <if test="status != null">
+                                status = #{status}
+                            </if>
+                       </set> where sku_code = #{skuCode}
+    </update>
+
+    <select id="getCode" resultType="java.lang.String">
+        select sku_code from wms_sku where id = #{skuId}
+    </select>
+</mapper>

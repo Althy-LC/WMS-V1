@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+                "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.HouseMapper">
+
+<insert id="add">
+    insert into wms_warehouse (warehouse_code,warehouse_name,address)values(#{warehouseCode},#{warehouseName},#{address})
+</insert>
+
+<select id="list" resultType="com.example1.wms.POJO.House">
+    SELECT id,warehouse_code,warehouse_name,address,status,create_time,update_time from wms_warehouse <if test="!isAdmin">where status = 1</if> order by id limit #{start},10
+</select>
+
+<select id="select" resultType="com.example1.wms.POJO.House">
+    SELECT warehouse_code,warehouse_name,address,status,create_time,update_time from wms_warehouse where warehouse_code =#{warehouseCode} <if test="!isAdmin">and status = 1</if>
+</select>
+
+    <update id="delete">
+    update wms_warehouse set status = 0 where warehouse_code =#{warehouseCode}
+    </update>
+
+    <update id="put">
+        update wms_warehouse <set>
+                              <if test="warehouseName != null">
+                                  warehouse_name = #{warehouseName},
+                              </if>
+                              <if test="address != null">
+                                  address = #{address},
+                              </if>
+                              <if test="status != null">
+                                  status = #{status}
+                              </if>
+                         </set>
+        where warehouse_code = #{warehouseCode}
+    </update>
+
+    <select id="getid" resultType="java.lang.Long">
+        select id from wms_warehouse where warehouse_code = #{warehouseCode}
+    </select>
+
+    <select id="getCode" resultType="java.lang.String">
+        select warehouse_code from wms_warehouse where id = #{warehouseId}
+    </select>
+</mapper>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.SequenceMapper">
+    <select id="nextCode" resultType="java.lang.Long">
+        select current_val from sequence where seq_name = #{seqName}
+    </select>
+
+    <update id="update">
+        update sequence set current_val = current_val + step where seq_name=#{seqName}
+    </update>
+
+    <insert id="add">
+        insert into sequence (seq_name) values (#{seqName})
+    </insert>
+
+    <select id="nextCodeByymd" resultType="com.example1.wms.POJO.Sequence">
+        select seq_name,current_val,update_time from sequence where seq_name = #{seqName}
+    </select>
+
+    <update id="updateByseq">
+        update sequence set current_val = #{seq} + step where seq_name=#{seqName}
+    </update>
+
+</mapper>

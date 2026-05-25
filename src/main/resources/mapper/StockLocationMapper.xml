@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.StockLocationMapper">
+    <insert id="addorupdate">
+        INSERT INTO stock_location
+        (warehouse_id, sku_id, location_id, amount, status)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.warehouseId}, #{item.skuId}, #{item.locationId}, #{item.amount}, #{item.status.code})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        amount = amount + VALUES(amount),
+        status = VALUES(status)
+    </insert>
+
+    <select id="select" resultType="com.example1.wms.POJO.StockLocation">
+        select sku_id,location_id,amount from stock_location where warehouse_id = #{warehouseId}
+    </select>
+
+    <update id="updateAmount">
+        <foreach collection="list" item="item" separator=";">
+            update stock_location set Amount = #{item.amount} where warehouse_id = #{item.warehouseId} and location_id = #{item.locationId}
+        </foreach>
+
+    </update>
+
+    <select id="getlocationId" resultType="java.lang.Long">
+        select location_id from stock_location where warehouse_id = #{warehouseId} and sku_id = #{skuId} and status = 0
+    </select>
+
+    <select id="getByhouseandsku" resultType="com.example1.wms.POJO.StockLocation">
+        select location_id,Amount from stock_location where warehouse_id = #{warehouseId} and sku_id =#{skuId}
+    </select>
+
+    <!-- 预占库存：amount减，locked_amount加 -->
+    <update id="lockStock">
+        <foreach collection="list" item="item" separator=";">
+            update stock_location
+            set amount = amount - #{item.amount},
+                locked_amount = locked_amount + #{item.amount}
+            where warehouse_id = #{item.warehouseId}
+              and sku_id = #{item.skuId}
+              and location_id = #{item.locationId}
+              and amount >= #{item.amount}
+        </foreach>
+    </update>
+
+    <!-- 扣减锁定库存并出库 -->
+    <update id="deductLockedStock">
+        <foreach collection="list" item="item" separator=";">
+            update stock_location
+            set locked_amount = locked_amount - #{item.amount}
+            where warehouse_id = #{item.warehouseId}
+              and sku_id = #{item.skuId}
+              and location_id = #{item.locationId}
+              and locked_amount >= #{item.amount}
+        </foreach>
+    </update>
+
+    <!-- 查询amount为0的stock_location记录 -->
+    <select id="getZeroAmountLocations" resultType="com.example1.wms.POJO.StockLocation">
+        select id, warehouse_id, sku_id, location_id, amount, locked_amount
+        from stock_location
+        where warehouse_id = #{warehouseId}
+          and sku_id = #{skuId}
+          and location_id = #{locationId}
+          and amount = 0
+    </select>
+
+    <!-- 更新stock_location状态为已作废 -->
+    <update id="updateStatusToAbandoned">
+        update stock_location
+        set status = 2
+        where id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+</mapper>

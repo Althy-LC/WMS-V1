@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.PuchaseInMapper">
+   <insert id="add">
+       insert into wms_purchase_in (order_no,warehouse_id,supplier,total_quantity,status,create_user) values (#{orderNo},#{warehouseId},#{supplier},#{totalQuantity},#{status},#{createUser})
+   </insert>
+
+    <select id="get" resultType="com.example1.wms.POJO.PurchaseIn">
+        select id,order_no,warehouse_id,supplier,total_quantity,status,create_user,create_time,update_time from wms_purchase_in where order_no = #{orderNo}
+    </select>
+
+   <select id="getid" resultType="java.lang.Long">
+       select id from wms_purchase_in where order_no = #{orderNo}
+   </select>
+
+    <update id="update">
+        update  wms_purchase_in set status = #{status} where order_no = #{orderNo}
+    </update>
+
+
+<select id="getWarehouseId" resultType="java.lang.Long">
+    select  warehouse_id from wms_purchase_in where id = #{orderId}
+</select>
+
+   <select id="selecthouse" resultType="java.lang.Long">
+       select id from wms_warehouse where warehouse_code = #{warehouseCode}
+   </select>
+
+    <select id="selecthousebyid" resultType="com.example1.wms.POJO.House">
+        select warehouse_code,warehouse_name from wms_warehouse where id = #{warehouseId}
+    </select>
+
+</mapper>

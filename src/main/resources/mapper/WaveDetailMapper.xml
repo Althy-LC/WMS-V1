@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.WaveDetailMapper">
+    <insert id="add">
+        insert into wms_wave_detail (wave_id,order_id,sku_id,quantity) values <foreach collection="list" item="item" separator="," open="(" close=")">
+                                                                                  #{item.waveId},
+                                                                                  #{item.orderId},
+                                                                                  #{item.skuId},
+                                                                                  #{quantity}
+                                                                              </foreach>
+    </insert>
+
+    <select id="getByWaveid" resultType="com.example1.wms.POJO.WaveDetail">
+        select order_id,sku_id,quantity,location_id,sort_order from wms_wave_detail where wave_id = #{waveId}
+    </select>
+
+    <update id="update">
+        <foreach collection="list" item="item" separator=";">
+            update wms_wave_detail set location_id = #{item.locationId} where wave_id =#{item.waveId} and order_id = #{order_id} and sku_id = #{skuId}
+        </foreach>
+
+    </update>
+
+    <update id="updateSort">
+        update wms_wave_detail set sort_order = #{sort} where location_id = #{locationid}
+    </update>
+</mapper>

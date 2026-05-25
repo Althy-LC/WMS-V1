@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.PuchaseInDetailMapper">
+    <insert id="add">
+        insert into wms_purchase_in_detail (order_id,sku_id,plan_quantity,status) values
+                               <foreach collection="list" item="item" separator=",">
+                                        (
+                                         #{item.orderId},
+                                         #{item.skuId},
+                                         #{item.planQuantity},
+                                         #{item.status})
+                               </foreach>
+    </insert>
+
+    <insert id="addFail">
+        insert into wms_purchase_in_detail (order_id,sku_id,plan_quantity,status,location_id,qc_result,actual_quantity,qualified_quantity) values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.orderId},
+            #{item.skuId},
+            #{item.planQuantity},
+            #{item.status},
+            #{item.locationId},
+            #{item.qcResult},
+            #{item.actualQuantity},
+            #{item.qualifiedQuantity}
+            )
+        </foreach>
+    </insert>
+
+    <update id="put">
+        <foreach collection="list" item="item" separator=";">
+            update wms_purchase_in_detail
+            <set>
+                <if test="item.actualQuantity != null">
+                    actual_quantity = #{item.actualQuantity},
+                </if>
+                <if test="item.qualifiedQuantity != null">
+                    qualified_quantity = #{item.qualifiedQuantity},
+                </if>
+                <if test="item.locationId != null">
+                    location_id = #{item.locationId},
+                </if>
+                <if test="item.inspector != null">
+                    inspector = #{item.inspector},
+                </if>
+                <if test="item.qcResult != null">
+                    qc_result = #{item.qcResult},
+                </if>
+                <if test="item.unqualifiedReson != null">
+                    unqualified_reson = #{item.unqualifiedReson},
+                </if>
+                <if test="item.status != null">
+                    status = #{item.status}
+                </if>
+            </set>
+            where order_id = #{item.orderId} and sku_id = #{item.skuId}
+        </foreach>
+    </update>
+
+    <select id="getDetail" resultType="com.example1.wms.POJO.PurchaseInDetail">
+        select order_id,sku_id,plan_quantity,actual_quantity,qualified_quantity,location_id,inspector,qc_result,unqualified_reson,status,create_time,update_time from wms_purchase_in_detail where order_id = #{orderId}
+    </select>
+
+    <select id="getlocationid" resultType="java.lang.Long">
+        select id from wms_purchase_in_detail where order_id = #{orderId}
+    </select>
+
+    <select id="getTotalBystatus" resultType="java.lang.Integer">
+        select actual_quantity from wms_purchase_in_detail where order_id = #{orderId} and sku_id=#{skuId} and status = #{status}
+    </select>
+
+    <select id="getlocationids" resultType="java.lang.Long">
+        select DISTINCT location_id from wms_purchase_in_detail where order_id = #{orderId}
+    </select>
+
+    <update id="recive">
+        update wms_purchase_in_detail set status =#{detailstatus},location_id = #{locationId}
+    </update>
+
+    <select id="getDetailByidAndCode" resultType="java.lang.Double">
+        select actual_quantity from wms_purchase_in_detail where order_id = #{id} and sku_id = #{skuId}
+    </select>
+
+    <update id="finish">
+         <foreach collection="list" item="item" separator=";">
+             update  wms_purchase_in_detail set
+                                                status = #{item.detailStatus}
+                                            where
+                                                order_id = #{item.orderId}
+                                                and sku_id = #{item.skuId}
+                                                <if test='item.type.name() == "PASS"'>
+                                                    And qc_result = 1
+                                                </if>
+                                                <if test='item.type.name() == "FAIL"'>
+                                                    And qc_result = 2
+                                                </if>
+         </foreach>
+    </update>
+
+    <select id="getFailTotal" resultType="java.lang.Integer">
+        select qualified_quantity from wms_purchase_in_detail where order_id = #{orderId} and sku_id = #{skuId}
+    </select>
+    <select id="getTotalByQcresult" resultType="java.lang.Integer">
+        select actual_quantity from wms_purchase_in_detail where order_id = #{orderId} and sku_id=#{skuId} and qc_result =#{qcResult}
+    </select>
+
+
+
+
+
+
+<!-- 操作location表-->
+
+
+    <select id="getlocation" resultType="java.util.Map">
+        select id,location_code from wms_location
+    </select>
+
+
+
+<!--操作sku表-->
+    <select id="getSkuid" resultType="java.lang.Long">
+        select id from wms_sku where sku_code = #{skuCode}
+    </select>
+
+    <select id="getsku" resultType="java.util.Map">
+        select id,sku_code,sku_name from wms_sku
+    </select>
+
+
+
+
+
+</mapper>

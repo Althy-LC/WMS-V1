@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example1.wms.Mapper.InventoryCheckMapper">
+  <insert id="add">
+      insert into wms_inventory_check (order_no,warehouse_id,create_user,status) values (#{orderNo},#{warehouseId},#{createUser},#{status})
+  </insert>
+
+    <select id="getid" resultType="java.lang.Long">
+        select id from wms_inventory_check where order_no = #{orderNo}
+    </select>
+
+    <update id="update">
+        update wms_inventory_check set status = #{status} where order_No = #{orderNo}
+    </update>
+
+    <select id="getAllByorderNo" resultType="com.example1.wms.POJO.InventoryCheck">
+        select id,warehouse_id,create_user,status from wms_inventory_check where order_no = #{orderNo}
+    </select>
+
+</mapper>
