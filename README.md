@@ -114,6 +114,3 @@ mvn spring-boot:run
 - 销售出库管理
 - 采购入库管理
 
-## License
-
-MIT
