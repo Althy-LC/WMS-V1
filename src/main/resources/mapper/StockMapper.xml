@@ -21,7 +21,16 @@
     </insert>
 
     <select id="getTotal" resultType="java.util.Map">
-        select total_stock AS total ,available_stock AS available from wms_stock where warehouse_id = #{warehouseId} and sku_id = #{skuId}
+        select 
+            COALESCE(SUM(total_stock), 0) AS total,
+            COALESCE(SUM(available_stock), 0) AS available,
+            COALESCE(SUM(sale_locked), 0) AS sale_locked,
+            COALESCE(SUM(locked_stock), 0) AS locked_stock
+        from wms_stock 
+        where sku_id = #{skuId}
+        <if test="warehouseId != null">
+            and warehouse_id = #{warehouseId}
+        </if>
     </select>
 
     <select id="getStock" resultType="com.example1.wms.POJO.Stock">

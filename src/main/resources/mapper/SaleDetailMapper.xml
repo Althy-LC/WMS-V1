@@ -42,4 +42,21 @@
          </foreach>
     </update>
 
+    <!-- 查询近N天出库TOP M的商品 -->
+    <select id="getOutboundTopN" resultType="java.util.Map">
+        SELECT 
+            s.id AS skuId,
+            s.sku_code AS skuCode,
+            s.sku_name AS skuName,
+            COALESCE(SUM(d.quantity), 0) AS totalQuantity
+        FROM wms_sale_out_detail d
+        INNER JOIN wms_sale_out o ON d.order_id = o.id
+        INNER JOIN wms_sku s ON d.sku_id = s.id
+        WHERE o.create_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+          AND o.status = 4  -- 4=已出库
+        GROUP BY s.id, s.sku_code, s.sku_name
+        ORDER BY totalQuantity DESC
+        LIMIT #{topN}
+    </select>
+
 </mapper>
