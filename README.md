@@ -7,7 +7,7 @@
 - Spring Boot 3.3.6
 - MyBatis 3.0.4
 - MySQL 8.0.33
-- Spring AI Alibaba 1.1.2.2 (通义千问DashScope)
+-Spring AI 阿里巴巴 1.1.2.2（通义千问DashScope）
 
 ## 主要功能
 
@@ -134,10 +134,7 @@ mvn clean package
 mvn spring-boot:run
 ```
 
-### 测试
-
-访问 http://localhost:8080
 
 ## License
 
-MIT
+麻省理工学院
