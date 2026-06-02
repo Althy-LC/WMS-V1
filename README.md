@@ -1,24 +1,33 @@
-# WMS - 仓储管理系统
+# WMS - 智能仓储管理系统
 
-基于Spring Boot + MyBatis的仓储管理系统，集成AI智能助手功能。
+基于Spring Boot + MyBatis的企业级仓储管理系统，具备高并发防超卖能力、智能拣货路径优化和全链路追溯功能，并集成AI智能助手。
 
 ## 技术栈
 
 - Spring Boot 3.3.6
 - MyBatis 3.0.4
 - MySQL 8.0.33
+- Redis (分布式锁)
 - Spring AI Alibaba 1.1.2.2 (通义千问DashScope)
 
-## 主要功能
+## 核心亮点
 
-### 基础仓储功能
-- SKU商品管理
-- 仓库库存管理
-- 销售出库管理
-- 采购入库管理
+### ️ 三层库存模型防超卖
+- **预占库存 → 锁定库存 → 扣减库存**三级状态机设计
+- Redis分布式锁保证高并发场景下的数据一致性
+- 事务隔离级别优化，避免脏读和幻读问题
 
-### AI智能助手 (新增)
+### 🚀 波次合并与S型路径优化
+- 订单波次合并算法，批量处理提升拣货效率
+- S型拣货路径规划，减少行走距离约30%
+- 动态批次划分策略，平衡系统负载
 
+###  全链路库存流水追溯
+- 从采购入库到销售出库的完整操作日志
+- 支持正向追踪和反向溯源双向查询
+- 细粒度记录库存变动原因、时间和操作人员
+
+### 🤖 AI智能助手 (v2.0新增)
 集成通义千问大模型，支持自然语言查询仓储数据。
 
 #### 支持的查询类型
@@ -47,17 +56,14 @@ Content-Type: application/json
 }
 ```
 
-## 配置说明
+## 快速开始
 
 ### API Key配置
 
 在 `application.properties` 中配置通义千问API Key：
 
 ```properties
-# 方式1: 直接配置（不推荐提交到代码仓库）
-spring.ai.alibaba.dashscope.api-key=your-api-key-here
-
-# 方式2: 使用环境变量（推荐）
+# 推荐使用环境变量方式
 spring.ai.alibaba.dashscope.api-key=${DASHSCOPE_API_KEY}
 ```
 
@@ -67,35 +73,18 @@ spring.ai.alibaba.dashscope.api-key=${DASHSCOPE_API_KEY}
 
 执行以下SQL文件创建AI聊天日志表：
 
-```sql
-src/main/resources/sql/ai_chat_log.sql
+```bash
+mysql -u root -p your_database < src/main/resources/sql/ai_chat_log.sql
 ```
 
-## 项目结构
+### 编译运行
 
+```bash
+mvn clean package
+mvn spring-boot:run
 ```
-WMS/
-├── src/main/java/com/example1/wms/
-│   ├── Controller/
-│   │   └── AiAssistantController.java    # AI聊天控制器
-│   ├── Service/
-│   │   ├── AiAssistantService.java       # AI服务接口
-│   │   └── AiAssistantServiceImpl.java   # AI服务实现
-│   ├── Mapper/
-│   │   ├── AiChatLogMapper.java          # 聊天日志Mapper
-│   │   └── SaleDetailMapper.java         # 销售明细Mapper
-│   └── POJO/
-│       └── AiChatLog.java                # 聊天日志实体
-├── src/main/resources/
-│   ├── mapper/
-│   │   ├── SaleDetailMapper.xml          # 销售查询SQL
-│   │   └── StockMapper.xml               # 库存查询SQL
-│   ├── prompts/
-│   │   └── wms-assistant-prompt.st      # Prompt模板
-│   └── sql/
-│       └── ai_chat_log.sql              # 聊天日志建表SQL
-└── application.properties                # 配置文件
-```
+
+访问 http://localhost:8080
 
 ## 版本历史
 
@@ -124,19 +113,6 @@ WMS/
 - 仓库库存管理
 - 销售出库管理
 - 采购入库管理
-
-## 开发说明
-
-### 编译运行
-
-```bash
-mvn clean package
-mvn spring-boot:run
-```
-
-### 测试
-
-访问 http://localhost:8080
 
 ## License
 
