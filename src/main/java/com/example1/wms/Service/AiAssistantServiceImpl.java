@@ -166,22 +166,30 @@ public class AiAssistantServiceImpl implements AiAssistantService {
      */
     private String queryStockData(String userQuery) {
         try {
-            // 提取SKU编码（简单匹配）
+            // 提取SKU编码
             String skuCode = extractSkuCode(userQuery);
+            log.info("从查询语句中提取的SKU编码: {}", skuCode);
+            
             if (skuCode != null) {
                 Long skuId = skuMapper.getid(skuCode);
+                log.info("SKU编码 {} 对应的ID: {}", skuCode, skuId);
+                
                 if (skuId != null) {
                     Map<String, Object> stockInfo = stockMapper.getTotal(null, skuId);
-                    if (stockInfo != null) {
+                    if (stockInfo != null && !stockInfo.isEmpty()) {
                         return formatStockData(stockInfo);
+                    } else {
+                        return "SKU " + skuCode + " 在系统中存在，但暂无库存数据";
                     }
+                } else {
+                    return "系统中未找到SKU编码为 [" + skuCode + "] 的商品，请检查编码是否正确";
                 }
             }
             // 如果没有指定SKU，返回所有库存概览
-            return "请指定SKU编码查询具体库存";
+            return "请指定SKU编码查询具体库存，例如：查询SKU SK0001的库存";
         } catch (Exception e) {
             log.error("查询库存数据失败", e);
-            return "";
+            return "查询库存时发生异常：" + e.getMessage();
         }
     }
 
@@ -194,12 +202,34 @@ public class AiAssistantServiceImpl implements AiAssistantService {
             int days = extractDays(userQuery);
             int topN = extractTopN(userQuery);
 
-            // 这里简化处理，实际需要根据销售明细表聚合统计
-            // 由于现有Mapper没有直接的聚合查询方法，这里返回提示信息
-            return "近" + days + "天出库TOP" + topN + "商品统计数据（需配置对应的SQL聚合查询）";
+            log.info("查询近{}天出库TOP{}商品", days, topN);
+            
+            // 调用Mapper查询
+            List<Map<String, Object>> topList = saleDetailMapper.getOutboundTopN(days, topN);
+            
+            log.info("查询结果数量: {}", topList != null ? topList.size() : 0);
+            
+            if (topList == null || topList.isEmpty()) {
+                return "近" + days + "天内暂无已出库（状态=4）的销售记录";
+            }
+            
+            // 格式化为表格
+            StringBuilder sb = new StringBuilder();
+            sb.append("| 排名 | SKU编码 | 商品名称 | 出库数量 |\n");
+            sb.append("|------|---------|----------|----------|\n");
+            
+            int rank = 1;
+            for (Map<String, Object> item : topList) {
+                sb.append("| ").append(rank++).append(" | ")
+                  .append(item.get("skuCode")).append(" | ")
+                  .append(item.get("skuName")).append(" | ")
+                  .append(item.get("totalQuantity")).append(" |\n");
+            }
+            
+            return sb.toString();
         } catch (Exception e) {
             log.error("查询出库TOP数据失败", e);
-            return "";
+            return "查询出库排行时发生异常：" + e.getMessage();
         }
     }
 
@@ -228,8 +258,12 @@ public class AiAssistantServiceImpl implements AiAssistantService {
      * 从查询语句中提取SKU编码
      */
     private String extractSkuCode(String userQuery) {
-        // 简单匹配：查找类似 SKU001、SK0001 等格式
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(?:SKU|SK)[A-Za-z]?\\d+", java.util.regex.Pattern.CASE_INSENSITIVE);
+        // 匹配多种SKU编码格式：
+        // SKU-00000001, SKU00000001, SK00000001, sk-00000001等
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "(?:SKU|SK)[-]?[A-Za-z]?\\d+", 
+            java.util.regex.Pattern.CASE_INSENSITIVE
+        );
         java.util.regex.Matcher matcher = pattern.matcher(userQuery);
         if (matcher.find()) {
             return matcher.group();
@@ -271,12 +305,30 @@ public class AiAssistantServiceImpl implements AiAssistantService {
      * 格式化库存数据
      */
     private String formatStockData(Map<String, Object> stockInfo) {
+        // 检查是否有有效数据
+        if (stockInfo == null || stockInfo.isEmpty()) {
+            return "该商品暂无库存记录";
+        }
+        
         StringBuilder sb = new StringBuilder();
         sb.append("| 字段 | 数量 |\n");
         sb.append("|------|------|\n");
+        
+        boolean hasData = false;
         for (Map.Entry<String, Object> entry : stockInfo.entrySet()) {
-            sb.append("| ").append(entry.getKey()).append(" | ").append(entry.getValue()).append(" |\n");
+            Object value = entry.getValue();
+            // 如果值为null或0，显示为0
+            if (value == null) {
+                value = 0;
+            }
+            sb.append("| ").append(entry.getKey()).append(" | ").append(value).append(" |\n");
+            hasData = true;
         }
+        
+        if (!hasData) {
+            return "该商品暂无库存记录";
+        }
+        
         return sb.toString();
     }
 
