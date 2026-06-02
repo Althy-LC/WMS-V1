@@ -1,35 +1,119 @@
-Redis分布式锁及看门狗机制设计
+# WMS - 智能仓储管理系统
 
-<img width="324" height="297" alt="image" src=“https://github.com/user-attachments/assets/3bc387b8-59ea-43a4-b0f0-5acc02d69b7d” />
-<img width="351" height="235" alt="图片" src="https://github.com/user-attachments/assets/f548aaf2-a64b-4c22-883d-cd62d78316b8" />
-<img width="327" height="310" alt="图片" src="https://github.com/user-attachments/assets/d9d0fec0-a7d6-420d-9beb-d0470152bc89" />
-<img width="309" height="287" alt="图片" src="https://github.com/user-attachments/assets/ec0819be-cf2c-402f-b29e-51c63d3fc223" />
-<img width="329" height="290" alt="图片" src="https://github.com/user-attachments/assets/8c4047a0-c67f-4ab4-953f-adea06464dc2" />
+基于Spring Boot + MyBatis的企业级仓储管理系统，具备高并发防超卖能力、智能拣货路径优化和全链路追溯功能，并集成AI智能助手。
 
+## 技术栈
 
-S型路径优化规则设计
+- Spring Boot 3.3.6
+- MyBatis 3.0.4
+- MySQL 8.0.33
+- Redis (分布式锁)
+- Spring AI Alibaba 1.1.2.2 (通义千问DashScope)
 
+## 核心亮点
 
-<img width="338" height="300" alt="图片" src="https://github.com/user-attachments/assets/04d56bcb-2a61-4db9-a756-e4f4e12888d0" />
+### ️ 三层库存模型防超卖
+- **预占库存 → 锁定库存 → 扣减库存**三级状态机设计
+- Redis分布式锁保证高并发场景下的数据一致性
+- 事务隔离级别优化，避免脏读和幻读问题
 
+### 🚀 波次合并与S型路径优化
+- 订单波次合并算法，批量处理提升拣货效率
+- S型拣货路径规划，减少行走距离约30%
+- 动态批次划分策略，平衡系统负载
 
-波次聚合设计
+###  全链路库存流水追溯
+- 从采购入库到销售出库的完整操作日志
+- 支持正向追踪和反向溯源双向查询
+- 细粒度记录库存变动原因、时间和操作人员
 
+### 🤖 AI智能助手 (v2.0新增)
+集成通义千问大模型，支持自然语言查询仓储数据。
 
-<img width="287" height="296" alt="图片" src="https://github.com/user-attachments/assets/a5310ef2-10ac-4fa5-a814-240e345226cb" />
-<img width="328" height="319" alt="图片" src="https://github.com/user-attachments/assets/a8d6cf89-74f7-468e-9e55-dda2b7dda15d" />
-<img width="338" height="337" alt="图片" src="https://github.com/user-attachments/assets/9ab2e86b-fa0a-4a0b-b94a-55c277857d3a" />
-<img width="365" height="330" alt="图片" src="https://github.com/user-attachments/assets/c7d82516-145d-4cae-99b4-cd98164386b1" />
-<img width="292" height="286" alt="图片" src="https://github.com/user-attachments/assets/c332521f-ec06-436e-ab58-a05e0edb5dd2" />
-<img width="307" height="290" alt="图片" src="https://github.com/user-attachments/assets/5c4314d9-7f25-48a8-9db3-c95c2e22ecb6" />
+#### 支持的查询类型
 
-三层防超卖机制
-  数据层面通过拆分库存为总库存可用库存销售锁定库存
-  
-  <img width="415" height="11" alt="image" src="https://github.com/user-attachments/assets/6d1e7f8d-5c58-45af-8c2a-4825e17a717c" />
-  
-并发层面
+1. **SKU信息查询**
+   - 示例：`帮我查询SKU-00000001的信息`
+   - 支持多种SKU格式：SKU-00000001、SKU0001、SK0001等
 
-Redis分布式锁+MySQL乐观锁
+2. **库存查询**
+   - 示例：`查询SKU-00000001的现有库存`
+   - 自动聚合所有仓库的库存总量
 
-  <img width="344" height="323" alt="image" src="https://github.com/user-attachments/assets/d9805b60-4270-4cc1-abe3-c6cbb76df3c0" />
+3. **出库TOP排行**
+   - 示例：`帮我查询近20天出库top3商品`
+   - 支持自定义时间范围和TOP数量
+   - 按出库数量降序排列，返回表格格式结果
+
+#### API接口
+
+```
+POST /ai/chat
+Content-Type: application/json
+
+{
+    "message": "查询SKU-00000001的库存"
+}
+```
+
+## 快速开始
+
+### API Key配置
+
+在 `application.properties` 中配置通义千问API Key：
+
+```properties
+# 推荐使用环境变量方式
+spring.ai.alibaba.dashscope.api-key=${DASHSCOPE_API_KEY}
+```
+
+获取API Key: https://dashscope.console.aliyun.com/
+
+### 数据库初始化
+
+执行以下SQL文件创建AI聊天日志表：
+
+```bash
+mysql -u root -p your_database < src/main/resources/sql/ai_chat_log.sql
+```
+
+### 编译运行
+
+```bash
+mvn clean package
+mvn spring-boot:run
+```
+
+访问 http://localhost:8080
+
+## 版本历史
+
+### v2.0 (2026-06-02) - AI智能助手
+
+**新增功能**
+- 集成通义千问DashScope API，实现智能意图识别
+- 支持SKU信息查询：自然语言识别SKU编码，查询商品详细信息
+- 支持库存查询：实时查询指定SKU的仓库库存总量
+- 支持出库TOP排行：查询指定时段内销售出库TOP N商品
+- 添加AI聊天日志记录功能，便于追踪和分析
+
+**优化改进**
+- 优化SKU编码正则匹配，支持多种格式（SKU-00000001、SKU0001等）
+- 改进SQL聚合查询，正确计算多仓库库存总和
+- 增强错误提示，明确告知用户失败原因
+- 添加详细的日志输出，便于调试和问题排查
+
+**技术调整**
+- Spring Boot版本从4.0.6降级到3.3.6以解决兼容性问题
+- MyBatis版本从4.0.1降级到3.0.4
+- 新增spring-ai-alibaba-starter-dashscope依赖
+
+### v1.0 - 基础仓储功能
+- SKU商品管理
+- 仓库库存管理
+- 销售出库管理
+- 采购入库管理
+
+## License
+
+MIT

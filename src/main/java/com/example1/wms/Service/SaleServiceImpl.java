@@ -230,7 +230,7 @@ public class SaleServiceImpl implements SaleService{
             }
             stockLocationMapper.lockStock(stockLocations);
 
-            // 记录stock_flow流水，类型为RELEASE_LOCK
+            // 记录stock_flow流水
             List<StockFlow> stockFlows = new ArrayList<>();
             for (SaleOutDetail detail : saleOutDetails) {
                 StockFlow stockFlow = new StockFlow();
